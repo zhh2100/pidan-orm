@@ -1,5 +1,4 @@
 <?php
-
 if (!\class_exists('pidan\Exception')) {
     require __DIR__ . '/Exception.php';
 }

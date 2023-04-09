@@ -3,6 +3,7 @@ declare (strict_types = 1);
 
 namespace pidan\db\concern;
 
+use pidan\db\exception\DbException;
 use pidan\db\Raw;
 
 /**
@@ -33,6 +34,11 @@ trait AggregateQuery
     {
         if (!empty($this->options['group'])) {
             // 支持GROUP
+
+            if (!preg_match('/^[\w\.\*]+$/', $field)) {
+                throw new DbException('not support data:' . $field);
+            }
+
             $options = $this->getOptions();
             $subSql  = $this->options($options)
                 ->field('count(' . $field . ') AS pidan_count')

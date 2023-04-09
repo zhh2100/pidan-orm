@@ -20,10 +20,9 @@ use MongoDB\Driver\WriteConcern;
 use pidan\db\BaseQuery;
 use pidan\db\builder\Mongo as Builder;
 use pidan\db\Connection;
+use pidan\db\exception\DbEventException;
 use pidan\db\exception\DbException as Exception;
 use pidan\db\Mongo as Query;
-use function implode;
-use function is_array;
 
 /**
  * Mongo数据库驱动
@@ -871,15 +870,15 @@ class Mongo extends Connection
      */
     public function select(BaseQuery $query): array
     {
-        $resultSet = $this->db->trigger('before_select', $query);
-
-        if (!$resultSet) {
-            $resultSet = $this->mongoQuery($query, function ($query) {
-                return $this->builder->select($query);
-            });
+        try {
+            $this->db->trigger('before_select', $query);
+        } catch (DbEventException $e) {
+            return [];
         }
 
-        return $resultSet;
+        return $this->mongoQuery($query, function ($query) {
+            return $this->builder->select($query);
+        });
     }
 
     /**
@@ -897,18 +896,18 @@ class Mongo extends Connection
     public function find(BaseQuery $query): array
     {
         // 事件回调
-        $result = $this->db->trigger('before_find', $query);
-
-        if (!$result) {
-            // 执行查询
-            $resultSet = $this->mongoQuery($query, function ($query) {
-                return $this->builder->select($query, true);
-            });
-
-            $result = $resultSet[0] ?? [];
+        try {
+            $this->db->trigger('before_find', $query);
+        } catch (DbEventException $e) {
+            return [];
         }
 
-        return $result;
+        // 执行查询
+        $resultSet = $this->mongoQuery($query, function ($query) {
+            return $this->builder->select($query, true);
+        });
+
+        return $resultSet[0] ?? [];
     }
 
     /**

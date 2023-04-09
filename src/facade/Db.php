@@ -1,5 +1,4 @@
 <?php
-
 namespace pidan\facade;
 
 use pidan\Facade;

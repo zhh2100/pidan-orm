@@ -4,7 +4,6 @@ declare (strict_types = 1);
 namespace pidan\db\concern;
 
 use pidan\db\Raw;
-use pidan\helper\Str;
 
 /**
  * JOIN和VIEW查询

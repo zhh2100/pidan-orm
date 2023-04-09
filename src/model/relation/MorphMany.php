@@ -1,12 +1,10 @@
 <?php
-
 namespace pidan\model\relation;
 
 use Closure;
 use pidan\Collection;
 use pidan\db\BaseQuery as Query;
 use pidan\db\exception\DbException as Exception;
-use pidan\helper\Str;
 use pidan\Model;
 use pidan\model\Relation;
 
@@ -21,6 +19,7 @@ class MorphMany extends Relation
      * @var string
      */
     protected $morphKey;
+
     /**
      * 多态字段名
      * @var string
@@ -66,10 +65,6 @@ class MorphMany extends Relation
         }
 
         $this->baseQuery();
-
-        if ($this->withLimit) {
-            $this->query->limit($this->withLimit);
-        }
 
         return $this->query->relation($subRelation)
             ->select()
@@ -248,6 +243,11 @@ class MorphMany extends Relation
             $closure($this->getClosureType($closure));
         }
 
+        $withLimit = $this->query->getOptions('limit');
+        if ($withLimit) {
+            $this->query->removeOption('limit');
+        }
+
         $list = $this->query
             ->where($where)
             ->with($subRelation)
@@ -256,11 +256,11 @@ class MorphMany extends Relation
         $morphKey = $this->morphKey;
 
         // 组装模型数据
-        $data = [];
+        $data      = [];
         foreach ($list as $set) {
             $key = $set->$morphKey;
 
-            if ($this->withLimit && isset($data[$key]) && count($data[$key]) >= $this->withLimit) {
+            if ($withLimit && isset($data[$key]) && count($data[$key]) >= $withLimit) {
                 continue;
             }
 
@@ -279,6 +279,10 @@ class MorphMany extends Relation
      */
     public function save($data, bool $replace = true)
     {
+        if ($data instanceof Model) {
+            $data = $data->getData();
+        }
+                
         $model = $this->make();
 
         return $model->replace($replace)->save($data) ? $model : false;
@@ -320,6 +324,33 @@ class MorphMany extends Relation
         }
 
         return empty($result) ? false : $result;
+    }
+
+    /**
+     * 获取多态关联外键
+     * @return string
+     */
+    public function getMorphKey()
+    {
+        return $this->morphKey;
+    }
+
+    /**
+     * 获取多态字段名
+     * @return string
+     */
+    public function getMorphType()
+    {
+        return $this->morphType;
+    }
+
+    /**
+     * 获取多态类型
+     * @return string
+     */
+    public function getType()
+    {
+        return $this->type;
     }
 
     /**

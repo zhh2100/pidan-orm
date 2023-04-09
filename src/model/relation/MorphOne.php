@@ -1,11 +1,9 @@
 <?php
-
 namespace pidan\model\relation;
 
 use Closure;
 use pidan\db\BaseQuery as Query;
 use pidan\db\exception\DbException as Exception;
-use pidan\helper\Str;
 use pidan\Model;
 use pidan\model\Relation;
 
@@ -81,6 +79,8 @@ class MorphOne extends Relation
             }
 
             $relationModel->setParent(clone $this->parent);
+        } else {
+            $relationModel = $this->getDefaultModel();
         }
 
         return $relationModel;
@@ -149,7 +149,7 @@ class MorphOne extends Relation
             // 关联数据封装
             foreach ($resultSet as $result) {
                 if (!isset($data[$result->$pk])) {
-                    $relationModel = null;
+                    $relationModel = $this->getDefaultModel();
                 } else {
                     $relationModel = $data[$result->$pk];
                     $relationModel->setParent(clone $result);
@@ -193,7 +193,7 @@ class MorphOne extends Relation
                 $relationModel->setParent(clone $result);
                 $relationModel->exists(true);
             } else {
-                $relationModel = null;
+                $relationModel = $this->getDefaultModel();
             }
 
             if (!empty($this->bindAttr)) {
@@ -249,6 +249,10 @@ class MorphOne extends Relation
      */
     public function save($data, bool $replace = true)
     {
+        if ($data instanceof Model) {
+            $data = $data->getData();
+        }
+
         $model = $this->make();
         return $model->replace($replace)->save($data) ? $model : false;
     }

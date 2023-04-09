@@ -1,5 +1,4 @@
 <?php
-
 namespace pidan\paginator\driver;
 
 use pidan\Paginator;

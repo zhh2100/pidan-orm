@@ -9,6 +9,11 @@ use pidan\Paginator;
 
 /**
  * 模型数据集类
+ *
+ * @template TKey of array-key
+ * @template TModel of \pidan\Model
+ *
+ * @extends BaseCollection<TKey, TModel>
  */
 class Collection extends BaseCollection
 {
@@ -67,12 +72,13 @@ class Collection extends BaseCollection
      * 设置需要隐藏的输出属性
      * @access public
      * @param  array $hidden 属性列表
+     * @param  bool  $merge  是否合并
      * @return $this
      */
-    public function hidden(array $hidden)
+    public function hidden(array $hidden, bool $merge = false)
     {
-        $this->each(function (Model $model) use ($hidden) {
-            $model->hidden($hidden);
+        $this->each(function (Model $model) use ($hidden, $merge) {
+            $model->hidden($hidden, $merge);
         });
 
         return $this;
@@ -82,12 +88,13 @@ class Collection extends BaseCollection
      * 设置需要输出的属性
      * @access public
      * @param  array $visible
+     * @param  bool  $merge    是否合并
      * @return $this
      */
-    public function visible(array $visible)
+    public function visible(array $visible, bool $merge = false)
     {
-        $this->each(function (Model $model) use ($visible) {
-            $model->visible($visible);
+        $this->each(function (Model $model) use ($visible, $merge) {
+            $model->visible($visible, $merge);
         });
 
         return $this;
@@ -97,12 +104,13 @@ class Collection extends BaseCollection
      * 设置需要追加的输出属性
      * @access public
      * @param  array $append 属性列表
+     * @param  bool  $merge  是否合并
      * @return $this
      */
-    public function append(array $append)
+    public function append(array $append, bool $merge = false)
     {
-        $this->each(function (Model $model) use ($append) {
-            $model->append($append);
+        $this->each(function (Model $model) use ($append, $merge) {
+            $model->append($append, $merge);
         });
 
         return $this;
@@ -148,7 +156,7 @@ class Collection extends BaseCollection
     public function withAttr($name, $callback = null)
     {
         $this->each(function (Model $model) use ($name, $callback) {
-            $model->withAttribute($name, $callback);
+            $model->withAttr($name, $callback);
         });
 
         return $this;
@@ -175,8 +183,8 @@ class Collection extends BaseCollection
      * 按指定键整理数据
      *
      * @access public
-     * @param  mixed  $items    数据
-     * @param  string $indexKey 键名
+     * @param mixed       $items    数据
+     * @param string|null $indexKey 键名
      * @return array
      */
     public function dictionary($items = null, string &$indexKey = null)
@@ -202,8 +210,8 @@ class Collection extends BaseCollection
      * 比较数据集，返回差集
      *
      * @access public
-     * @param  mixed  $items    数据
-     * @param  string $indexKey 指定比较的键名
+     * @param mixed       $items    数据
+     * @param string|null $indexKey 指定比较的键名
      * @return static
      */
     public function diff($items, string $indexKey = null)
@@ -230,8 +238,8 @@ class Collection extends BaseCollection
      * 比较数据集，返回交集
      *
      * @access public
-     * @param  mixed  $items    数据
-     * @param  string $indexKey 指定比较的键名
+     * @param mixed       $items    数据
+     * @param string|null $indexKey 指定比较的键名
      * @return static
      */
     public function intersect($items, string $indexKey = null)

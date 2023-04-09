@@ -282,14 +282,13 @@ trait RelationShip
     /**
      * 预载入关联查询 返回模型对象
      * @access public
-     * @param  Model $result    数据对象
      * @param  array $relations 关联
      * @param  array $withRelationAttr 关联获取器
      * @param  bool  $join      是否为JOIN方式
      * @param  mixed $cache     关联缓存
      * @return void
      */
-    public function eagerlyResult(Model $result, array $relations, array $withRelationAttr = [], bool $join = false, $cache = false): void
+    public function eagerlyResult(array $relations, array $withRelationAttr = [], bool $join = false, $cache = false): void
     {
         foreach ($relations as $key => $relation) {
             $subRelation = [];
@@ -324,7 +323,7 @@ trait RelationShip
                 $relationCache = $cache[$relationName] ?? [];
             }
 
-            $relationResult->eagerlyResult($result, $relationName, $subRelation, $closure, $relationCache, $join);
+            $relationResult->eagerlyResult($this, $relationName, $subRelation, $closure, $relationCache, $join);
         }
     }
 
@@ -338,7 +337,7 @@ trait RelationShip
      */
     public function bindAttr(string $relation, array $attrs = [])
     {
-        $relation = $this->getRelation($relation);
+        $relation = $this->getRelation($relation, true);
 
         foreach ($attrs as $key => $attr) {
             $key   = is_numeric($key) ? $attr : $key;
@@ -727,7 +726,9 @@ trait RelationShip
     protected function getRelationData(Relation $modelRelation)
     {
         if ($this->parent && !$modelRelation->isSelfRelation()
-            && get_class($this->parent) == get_class($modelRelation->getModel())) {
+            && get_class($this->parent) == get_class($modelRelation->getModel())
+            && $modelRelation instanceof OneToOne
+        ) {
             return $this->parent;
         }
 

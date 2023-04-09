@@ -623,7 +623,7 @@ class Mongo extends BaseQuery
             $options['table'] = $this->getTable();
         }
 
-        foreach (['where', 'data'] as $name) {
+        foreach (['where', 'data', 'projection', 'filter', 'json', 'with_attr', 'with_relation_attr'] as $name) {
             if (!isset($options[$name])) {
                 $options[$name] = [];
             }
@@ -640,10 +640,6 @@ class Mongo extends BaseQuery
 
         if (!empty($modifiers)) {
             $options['modifiers'] = $modifiers;
-        }
-
-        if (!isset($options['projection'])) {
-            $options['projection'] = [];
         }
 
         if (!isset($options['typeMap'])) {

@@ -1,5 +1,4 @@
 <?php
-
 namespace pidan\db\connector;
 
 use PDO;
@@ -33,7 +32,7 @@ class Sqlite extends PDOConnection
     public function getFields(string $tableName): array
     {
         [$tableName] = explode(' ', $tableName);
-        $sql         = 'PRAGMA table_info( ' . $tableName . ' )';
+        $sql         = 'PRAGMA table_info( \'' . $tableName . '\' )';
 
         $pdo    = $this->getPDOStatement($sql);
         $result = $pdo->fetchAll(PDO::FETCH_ASSOC);

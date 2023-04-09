@@ -6,7 +6,6 @@ namespace pidan\model\relation;
 use Closure;
 use pidan\Collection;
 use pidan\db\BaseQuery as Query;
-use pidan\helper\Str;
 use pidan\Model;
 use pidan\model\Relation;
 
@@ -47,10 +46,6 @@ class HasMany extends Relation
     {
         if ($closure) {
             $closure($this->getClosureType($closure));
-        }
-
-        if ($this->withLimit) {
-            $this->query->limit($this->withLimit);
         }
 
         return $this->query
@@ -201,6 +196,11 @@ class HasMany extends Relation
             $this->query->withoutField($this->withoutField);
         }
 
+        $withLimit = $this->query->getOptions('limit');
+        if ($withLimit) {
+            $this->query->removeOption('limit');
+        }
+
         $list = $this->query
             ->where($where)
             ->cache($cache[0] ?? false, $cache[1] ?? null, $cache[2] ?? null)
@@ -208,12 +208,12 @@ class HasMany extends Relation
             ->select();
 
         // 组装模型数据
-        $data = [];
-
+        $data      = [];
+        
         foreach ($list as $set) {
             $key = $set->$foreignKey;
 
-            if ($this->withLimit && isset($data[$key]) && count($data[$key]) >= $this->withLimit) {
+            if ($withLimit && isset($data[$key]) && count($data[$key]) >= $withLimit) {
                 continue;
             }
 
@@ -232,6 +232,10 @@ class HasMany extends Relation
      */
     public function save($data, bool $replace = true)
     {
+        if ($data instanceof Model) {
+            $data = $data->getData();
+        }
+
         $model = $this->make();
 
         return $model->replace($replace)->save($data) ? $model : false;
@@ -331,9 +335,10 @@ class HasMany extends Relation
 
         $fields     = $this->getRelationQueryFields($fields, $model);
         $softDelete = $this->query->getOptions('soft_delete');
-        $query      = $query ?: $this->parent->db()->alias($model);
+        $query      = $query ?: $this->parent->db();
 
-        return $query->group($model . '.' . $this->localKey)
+        return $query->alias($model)
+            ->group($model . '.' . $this->localKey)
             ->field($fields)
             ->join([$table => $relation], $model . '.' . $this->localKey . '=' . $relation . '.' . $this->foreignKey, $joinType)
             ->when($softDelete, function ($query) use ($softDelete, $relation) {

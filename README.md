@@ -19,7 +19,7 @@
 
 ## 安装
 ~~~
-composer require toppidan/pidan-orm
+composer require zhh2100/pidan-orm
 ~~~
 
 ## 文档

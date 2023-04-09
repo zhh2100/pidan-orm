@@ -1,5 +1,4 @@
 <?php
-
 namespace pidan\model\relation;
 
 use Closure;
@@ -14,6 +13,13 @@ use pidan\model\Pivot;
  */
 class MorphToMany extends BelongsToMany
 {
+
+    /**
+     * 多态关系的模型名映射别名的数组
+     *
+     * @var array
+     */
+    protected static $morphMap = [];
 
     /**
      * 多态字段名
@@ -49,6 +55,9 @@ class MorphToMany extends BelongsToMany
         $this->morphType  = $morphType;
         $this->inverse    = $inverse;
         $this->morphClass = $inverse ? $model : get_class($parent);
+        if (isset(static::$morphMap[$this->morphClass])) {
+            $this->morphClass = static::$morphMap[$this->morphClass];
+        }
 
         $foreignKey = $inverse ? $morphKey : $localKey;
         $localKey   = $inverse ? $localKey : $morphKey;
@@ -197,12 +206,7 @@ class MorphToMany extends BelongsToMany
         }
 
         $fields = $this->getQueryFields($tableName);
-
-        if ($this->withLimit) {
-            $this->query->limit($this->withLimit);
-        }
-
-        $query = $this->query
+        $query  = $this->query
             ->field($fields)
             ->tableField(true, $table, 'pivot', 'pivot__');
 
@@ -230,6 +234,11 @@ class MorphToMany extends BelongsToMany
             $closure($this->getClosureType($closure));
         }
 
+        $withLimit = $this->query->getOptions('limit');
+        if ($withLimit) {
+            $this->query->removeOption('limit');
+        }
+
         // 预载入关联查询 支持嵌套预载入
         $list = $this->belongsToManyQuery($this->foreignKey, $this->localKey, $where)
             ->with($subRelation)
@@ -237,7 +246,7 @@ class MorphToMany extends BelongsToMany
             ->select();
 
         // 组装模型数据
-        $data = [];
+        $data      = [];
         foreach ($list as $set) {
             $pivot = [];
             foreach ($set->getData() as $key => $val) {
@@ -252,7 +261,7 @@ class MorphToMany extends BelongsToMany
 
             $key = $pivot[$this->localKey];
 
-            if ($this->withLimit && isset($data[$key]) && count($data[$key]) >= $this->withLimit) {
+            if ($withLimit && isset($data[$key]) && count($data[$key]) >= $withLimit) {
                 continue;
             }
 
@@ -281,10 +290,10 @@ class MorphToMany extends BelongsToMany
                 $model = new $this->model;
                 $id    = $model->insertGetId($data);
             }
-        } else if (is_numeric($data) || is_string($data)) {
+        } elseif (is_numeric($data) || is_string($data)) {
             // 根据关联表主键直接写入中间表
             $id = $data;
-        } else if ($data instanceof Model) {
+        } elseif ($data instanceof Model) {
             // 根据关联表主键直接写入中间表
             $id = $data->getKey();
         }
@@ -352,10 +361,10 @@ class MorphToMany extends BelongsToMany
     {
         if (is_array($data)) {
             $id = $data;
-        } else if (is_numeric($data) || is_string($data)) {
+        } elseif (is_numeric($data) || is_string($data)) {
             // 根据关联表主键直接写入中间表
             $id = $data;
-        } else if ($data instanceof Model) {
+        } elseif ($data instanceof Model) {
             // 根据关联表主键直接写入中间表
             $id = $data->getKey();
         }
@@ -422,7 +431,7 @@ class MorphToMany extends BelongsToMany
             if (!in_array($id, $current)) {
                 $this->attach($id, $attributes);
                 $changes['attached'][] = $id;
-            } else if (count($attributes) > 0 && $this->attach($id, $attributes)) {
+            } elseif (count($attributes) > 0 && $this->attach($id, $attributes)) {
                 $changes['updated'][] = $id;
             }
         }
@@ -449,6 +458,23 @@ class MorphToMany extends BelongsToMany
 
             $this->baseQuery = true;
         }
+    }
+
+    /**
+     * 设置或获取多态关系的模型名映射别名的数组
+     *
+     * @param  array|null  $map
+     * @param  bool  $merge
+     * @return array
+     */
+    public static function morphMap(array $map = null, $merge = true): array
+    {
+        if (is_array($map)) {
+            static::$morphMap = $merge && static::$morphMap
+            ? $map + static::$morphMap : $map;
+        }
+
+        return static::$morphMap;
     }
 
 }
