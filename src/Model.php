@@ -208,6 +208,8 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      */
     public function __construct(array $data = [])
     {
+        self::sevice();
+
         $this->data = $data;
 
         if (!empty($this->data)) {
@@ -1036,8 +1038,38 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         return call_user_func_array([$this->db(), $method], $args);
     }
 
+    public static function sevice()
+    {
+        static $init=false;
+        if($init===false){
+            $init=true;
+            self::setDb(app('db'));
+            self::setEvent(app('event'));
+            self::setInvoker([app(), 'invoke']);
+            self::maker(function (Model $model) {
+                $config = app('config');
+								$timeField = $config->get('database.datetime_field');
+								if (!empty($timeField)) {
+									[$createTime, $updateTime] = explode(',', $timeField);
+									$model->setTimeField($createTime, $updateTime);
+								}
+                $isAutoWriteTimestamp = $model->getAutoWriteTimestamp();
+                if (is_null($isAutoWriteTimestamp)) {
+                    // 自动写入时间戳
+                    $model->isAutoWriteTimestamp($config->get('database.auto_timestamp', 'timestamp'));
+                }
+                $dateFormat = $model->getDateFormat();
+                if (is_null($dateFormat)) {
+                    // 设置时间戳格式
+                    $model->setDateFormat($config->get('database.datetime_format', 'Y-m-d H:i:s'));
+                }
+            });
+        }
+    }
     public static function __callStatic($method, $args)
     {
+        self::sevice();
+
         if (isset(static::$macro[static::class][$method])) {
             return call_user_func_array(static::$macro[static::class][$method]->bindTo(null, static::class), $args);
         }

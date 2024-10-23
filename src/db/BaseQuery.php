@@ -774,7 +774,7 @@ abstract class BaseQuery
             $key    = true;
         }
 
-        $this->options['cache']     = [$key, $expire, $tag ?: $this->getTable()];
+		$this->options['cache']     = [$key, $expire, $tag ?? $this->getTable()];
 
         return $this;
     }

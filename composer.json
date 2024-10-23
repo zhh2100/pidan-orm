@@ -1,6 +1,6 @@
 {
     "name": "zhh2100/pidan-orm",
-    "description": "pidan orm  同步到24db81a Commits on Apr 2, 2023",
+    "description": "pidan orm  同步了百腾  同步到官方24db81a Commits on Apr 2, 2023",
     "keywords": [
         "orm",
         "database"
@@ -26,10 +26,7 @@
     "autoload": {
         "psr-4": {
             "pidan\\": "src"
-        },
-        "files": [
-            "stubs/load_stubs.php"
-        ]
+        }
     },
     "autoload-dev": {
         "psr-4": {

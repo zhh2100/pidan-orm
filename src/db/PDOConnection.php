@@ -741,9 +741,9 @@ abstract class PDOConnection extends Connection
     public function getPDOStatement(string $sql, array $bind = [], bool $master = false, bool $procedure = false): PDOStatement
     {
         if(app()->isDebug()){
-		 file_put_contents('conn.txt',print_r($sql,true)."\r\n",FILE_APPEND);
-	         file_put_contents('conn.txt',print_r($bind,true)."\r\n",FILE_APPEND);
-	}
+			file_put_contents('conn.txt',print_r($sql,true)."\r\n",FILE_APPEND);
+            file_put_contents('conn.txt',print_r($bind,true)."\r\n",FILE_APPEND);
+        }
 
         try {
             $this->initConnect($this->readMaster ?: $master);

@@ -382,7 +382,7 @@ class Mysql extends Builder
             }
         }
 
-        if ($strict && !preg_match('/^[\w\-\.\*]+$/', $key)) {
+		if ($strict && !preg_match('/^[\w\.\*]+$/', $key)) {
             throw new Exception('not support data:' . $key);
         }
 
